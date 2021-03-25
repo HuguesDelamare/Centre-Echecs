@@ -14,25 +14,6 @@ class Player:
     def __str__(self):
         return "New player created: " + str(self.__dict__)
 
-# select 8 players from the DB for the new tournament
-def pickPlayers(numberToPick):
-    listPickedPlayers = []
-    existingId = []
-    count = 0
-    playersDB = TinyDB('playersDB.json')
-    playersDBSize = len(playersDB)
-    while count < numberToPick:
-        randomId = random.randint(1, playersDBSize)
-        pickedPlayer = playersDB.get(doc_id=randomId)
-        if randomId in existingId:
-            pass
-        else:
-            listPickedPlayers.append(pickedPlayer)
-            existingId.append(randomId)
-            count += 1
-    print(listPickedPlayers)
-    print(existingId)
-
 def setPlayerBirthdate():
     formatList = ["%d-%m-%Y", "%d/%m/%Y", "%d %m %Y"]
     while True:

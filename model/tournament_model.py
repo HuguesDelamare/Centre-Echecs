@@ -1,5 +1,6 @@
 from datetime import date
 from tinydb import TinyDB, Query
+import random
 
 class Tournament:
     def __init__(self, name, place, date, turns, tours, players, timecontrol, description):
@@ -54,6 +55,8 @@ def setTournamentTurns():
         else:
             return tournamentTurns
 
+
+
 def selectTimeControl():
     while True:
         inputValue = input('The time control is: A) Bullet. B) Blitz. C) Coup rapide. [A/B/C]? : ')
@@ -73,15 +76,37 @@ def selectTimeControl():
             print("Error, pick the value showed on screen.")
             continue
 
+def pickPlayers(numberPlayersPicked):
+    listPickedPlayers = []
+    existingId = []
+    count = 0
+    playerDB = TinyDB('../Database/playersDB.json').table('playerTable')
+    playersDBSize = len(playerDB)
+    print(playersDBSize)
+    if playersDBSize < 8:
+        print('Theres not enough players registred for the tournament.')
+        return
+    else:
+        while count < numberPlayersPicked:
+            randomId = random.randint(1, playersDBSize)
+            pickedPlayer = playerDB.get(doc_id=randomId)
+            if randomId in existingId:
+                pass
+            else:
+                listPickedPlayers.append(pickedPlayer)
+                existingId.append(randomId)
+                count += 1
+    return listPickedPlayers
+
 def createTournament():
     tournamentName = checkTournamentInfos("Name")
     tournamentPlace = checkTournamentInfos("Place")
     tournamentDate = str(date.today())
     tournamentTurns = setTournamentTurns()
     tournamentTours = []
-    tournamentPlayersList = ['Hugo', 'Seb', 'Jean']
+    tournamentPlayersList = pickPlayers(8)
     tournamentTimeControl = selectTimeControl()
-    tournamentDescription = str(input('Choose the description for your tournament.'))
+    tournamentDescription = str(input('Choose the description for your tournament: '))
 
     ### INSERTING INPUT DATA IN TOURNAMENT DB ###
     newTournament = Tournament(name=tournamentName, place=tournamentPlace, date=tournamentDate, turns=tournamentTurns, tours=tournamentTours, players=tournamentPlayersList, timecontrol=tournamentTimeControl, description=tournamentDescription)
@@ -97,9 +122,9 @@ def createTournament():
         'description': tournamentDescription
     }
 
-    tournamentDB = TinyDB('../Database/tournamentDB.json')
-    table = tournamentDB.table('tournamentTable')
-    table.insert(serializedTournament)
-
+    tournamentDB = TinyDB('../Database/tournamentDB.json').table('tournamentTable')
+    tournamentDB.insert(serializedTournament)
 
     return newTournament
+
+
