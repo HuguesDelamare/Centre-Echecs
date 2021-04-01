@@ -1,35 +1,20 @@
+from model import player_model
 from view import menu_view
-from model import tournament_model
-from model import tournament_player_model
 
-def createPlayerMenu():
-    return menu_view.showNewPlayer(tournament_player_model.createPlayer())
-
-def createTournamentMenu():
-    return menu_view.shoNewTournament(tournament_model.createTournament())
-
-def returnMainMenu():
-    start()
-
-def exitMenu():
-    return menu_view.endView()
-
-### Menu where user can choose what to do ###
 def start():
-    menu_view.startView()
     while True:
+        menu_view.View().show_menu()
         try:
             answer = int(input('What do you wanna do ? : '))
             if answer == 1:
-                createPlayerMenu()
-                returnMainMenu()
+                print('1')
+                player_model.Player().createPlayer()
             elif answer == 2:
-                createTournamentMenu()
-                returnMainMenu()
+                print('2')
             elif answer == 3:
-                print('Creating ladder')
+                print('3')
             elif answer == 4:
-                exitMenu()
+                print('4')
             else:
                 continue
         except ValueError:
@@ -37,5 +22,4 @@ def start():
             continue
 
 if __name__ == "__main__":
-   #running controller function
-   start()
+    start()
