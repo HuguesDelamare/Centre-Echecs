@@ -11,3 +11,4 @@ view/__pycache__/menu_view.cpython-39.pyc
 controller/__pycache__/player_controller.cpython-39.pyc
 controller/__pycache__/tournament_controller.cpython-39.pyc
 model/__pycache__/player_model.cpython-39.pyc
+.idea/pythonProject3.iml

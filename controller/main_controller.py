@@ -1,6 +1,5 @@
 from view import view
-from controller import player_controller
-from controller import tournament_controller
+from controller import tournament_controller, player_controller
 
 
 def start():
@@ -9,9 +8,9 @@ def start():
         try:
             answer = int(input('What do you wanna do ? : '))
             if answer == 1:
-                player_controller.PlayerController().set_player()
+                player_controller.PlayerController.insert_new_player()
             elif answer == 2:
-                tournament_controller.TournamentController().set_new_tournament()
+                tournament_controller.TournamentController.insert_new_tournament()
             elif answer == 3:
                 print('3')
             elif answer == 4:
@@ -22,6 +21,7 @@ def start():
         except ValueError:
             print('Error, enter a good value.')
             continue
+
 
 if __name__ == "__main__":
     start()
