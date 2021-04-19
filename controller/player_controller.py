@@ -1,20 +1,9 @@
-from tinydb import TinyDB, Query
 from view import view
 from model import player_model
 import datetime
 
 
 class PlayerController(object):
-    def __init__(self, lastname=None, firstname=None, birthdate=None, gender=None, ladder=None):
-        self.lastname = str(lastname)
-        self.firstname = str(firstname)
-        self.birthdate = str(birthdate)
-        self.gender = str(gender)
-        self.ladder = ladder
-
-    def __str__(self):
-        return "New Player created : " + str(self.__dict__)
-
     @classmethod
     def set_player_birthdate(cls):
         format_list = ["%d-%m-%Y", "%d/%m/%Y", "%d %m %Y"]
@@ -72,17 +61,18 @@ class PlayerController(object):
         p_lastname = cls.check_player_info("Lastname")
         p_birthdate = cls.set_player_birthdate()
         p_gender = cls.set_player_gender()
-        p_rank = 1000
 
         # INSERTING INPUT DATA IN PLAYER DB #
-        new_player = PlayerController(lastname=p_lastname, firstname=p_firstname, birthdate=p_birthdate, gender=p_gender, ladder=p_rank)
+
+        new_player = player_model.PlayerModel(lastname=p_lastname, firstname=p_firstname, birthdate=p_birthdate, gender=p_gender, ladder=1000, points=0)
 
         serialized_player = {
             'lastname': new_player.lastname,
             'firstname': new_player.firstname,
             'birthdate': new_player.birthdate,
             'gender': new_player.gender,
-            'ladder': new_player.ladder
+            'ladder': new_player.ladder,
+            'points': new_player.points
         }
 
         result = player_model.PlayerModel.insert_new_player(serialized_player)

@@ -1,26 +1,12 @@
 from model import tournament_model
 from model import player_model
+from controller import main_controller
 from controller import player_controller
-from tinydb import TinyDB, Query
 from datetime import date
 from view import view
 
 
 class TournamentController(object):
-    def __init__(self, name=None, place=None, date=None, rounds=None, turns=None, playerslist=None, timecontrol=None,
-                 description=None):
-        self.name = str(name)
-        self.place = str(place)
-        self.date = str(date)
-        self.rounds = int(rounds)
-        self.turns = str(turns)
-        self.playerslist = playerslist
-        self.timecontrol = str(timecontrol)
-        self.description = str(description)
-
-    def __str__(self):
-        return "New tournament created: " + str(self.__dict__)
-
     @classmethod
     def check_tournament_info(cls, input_text_value):
         while True:
@@ -85,21 +71,105 @@ class TournamentController(object):
                 print("Error, pick the value showed on screen.")
                 continue
 
-    """@classmethod
-    def creating_pairs(cls, players_list):
-        # Getting all players in list and sorting them by their ladder ASC
-        players_list.sort(key=lambda e: e['ladder'])
+    @staticmethod
+    def creating_pairs(players_list, rounds_count):
 
-        # Making pairs with the Swiss rules
-        middle = len(players_list)//2
+        if rounds_count == 1:
+            # Getting all players in list and sorting them by their ladder ASC
+            players_list.sort(key=lambda e: e['ladder'])
 
-        superior_players = players_list[:middle]
-        inferior_players = players_list[middle:]
+            # Making pairs with the Swiss rules
+            middle = len(players_list)//2
 
-        pairs = zip(superior_players, inferior_players)
-        # dict(zip(superiorPlayers, inferiorPlayers))
+            superior_players = players_list[:middle]
+            inferior_players = players_list[middle:]
 
-        cls.tournament_rounds(pairs)"""
+            pairs = zip(superior_players, inferior_players)
+
+            return pairs
+        else:
+            players_list.sort(key=lambda x: x[2])
+            print(players_list)
+
+
+    @staticmethod
+    def starting_match(pair):
+        player1 = pair[0]
+        player2 = pair[1]
+        view.View.show_match_versus(player1, player2)
+        result_match_input = input('Who won this match ?')
+
+        return result_match_input
+
+    @staticmethod
+    def distributing_points(pair):
+
+    @classmethod
+    def start_tournament(cls, players_list, nb_rounds):
+        rounds_count = 1
+        list_of_match = []
+        pair_list_of_match = []
+
+        # Match[match1[([J1]vs[J2])([J1]vs[J2])([J1]vs[J2])], match2[([J1]vs[J2])([J1]vs[J2])([J1]vs[J2])]]
+        while rounds_count < nb_rounds:
+            list_of_current_round = []
+            print('ROUND ' + str(rounds_count))
+            if rounds_count == 1:
+                pair_selector = cls.creating_pairs(players_list, rounds_count)
+                for pair in pair_selector:
+                    result_match_input = cls.starting_match(pair)
+                    # If player 1 win the match
+                    if result_match_input == '1':
+                        player1['points'] = player1['points'] + 1
+                        player2['points'] = player2['points'] + 0
+
+                        player1_result = [player1['firstname'], player1['lastname'], player1['points']]
+                        player2_result = [player2['firstname'], player2['lastname'], player2['points']]
+                        pair_list_of_match.append(player1_result)
+                        pair_list_of_match.append(player2_result)
+                        match_result = (player1_result, player2_result)
+                        list_of_current_round.insert(0, match_result)
+
+                    # If player 2 win the match
+                    elif result_match_input == '2':
+                        print(player2['firstname'] + ' ' + player2['lastname'] + ' WON the match, +1pts')
+                        player1['points'] = player1['points'] + 0
+                        player2['points'] = player2['points'] + 1
+
+                        player1_result = [player1['firstname'], player1['lastname'], player1['points']]
+                        player2_result = [player2['firstname'], player2['lastname'], player2['points']]
+                        pair_list_of_match.append(player1_result)
+                        pair_list_of_match.append(player2_result)
+                        match_result = (player1_result, player2_result)
+                        list_of_current_round.insert(0, match_result)
+
+                    else:
+                        print('Match is even, the two players get +0.5pts')
+                        player1['points'] = player1['points'] + 0.5
+                        player2['points'] = player2['points'] + 0.5
+
+                        player1_result = [player1['firstname'], player1['lastname'], player1['points']]
+                        player2_result = [player2['firstname'], player2['lastname'], player2['points']]
+                        pair_list_of_match.append(player1_result)
+                        pair_list_of_match.append(player2_result)
+                        match_result = (player1_result, player2_result)
+                        list_of_current_round.insert(0, match_result)
+                list_of_match.append(list_of_current_round)
+                rounds_count += 1
+            elif rounds_count != 1:
+                cls.creating_pairs(pair_list_of_match, rounds_count)
+                rounds_count += 1
+            else:
+                print('error')
+
+    @classmethod
+    def attribute_points_match(cls, match_result):
+        if match_result == '1':
+            print('1')
+        elif match_result == '2':
+            print('2')
+        else:
+            print('0.5')
 
     @classmethod
     def check_duplicate(cls, variable):
@@ -110,7 +180,7 @@ class TournamentController(object):
 
     @staticmethod
     def is_number(variable):
-        # Check if only int in array
+        # Check if only digit in array
         string = ""
         for number in variable:
             string += number
@@ -142,8 +212,8 @@ class TournamentController(object):
         # Display all players(names and ranks) from database
         while count < players_db_size:
             count += 1
-            player = player_model.PlayerModel.get_players_by_id(count)
-            view.View.display_all_players(count, player)
+            players = player_model.PlayerModel.get_players_by_id(count)
+            view.View.display_all_players(count, players)
 
         # Selecting which player we want in input
         if count == players_db_size:
@@ -153,9 +223,8 @@ class TournamentController(object):
             while True:
                 list_of_ids = []
                 selected_players_input = input('Select players that will play the for the tournament: ').lstrip()
-
                 # we push the Ids selected before in an array for query by id after
-                for id_player in selected_players_input:
+                for id_player in selected_players_input.split(","):
                     list_of_ids.append(id_player)
                 result = cls.checking_validity_array(list_of_ids)
                 if result:
@@ -163,41 +232,39 @@ class TournamentController(object):
                 else:
                     continue
 
-            # get players by id and append them in the tournament players list
-            list_of_players = player_model.PlayerModel.get_all_players_in_db(list_of_ids)
+            # get players by id and return them in list
+            list_of_players = player_model.PlayerModel.select_players_in_db(list_of_ids)
+            print(list_of_players)
 
-            if len(list_of_players) < 8:
+            while len(list_of_players) < 8:
                 print(str(len(list_of_players)) + '/8 players')
                 print('We\'re missing ' + str(int(8) - int(len(list_of_players))) + ' players')
                 adding_players_input = input('Do you wanna add more players [M]anually or from the [L]ist ?')
                 if adding_players_input.lower() == 'm':
-                    while len(list_of_players) < 8:
-                        added_player = player_controller.PlayerController.insert_new_player()
-                        list_of_players.append(added_player)
-                        print('We\'re missing ' + str(int(8) - int(len(list_of_players))) + ' players')
+                    added_player = player_controller.PlayerController.insert_new_player()
+                    list_of_players.append(added_player)
+                    print('We\'re missing ' + str(int(8) - int(len(list_of_players))) + ' players')
                 elif adding_players_input.lower() == 'l':
                     print('list')
                     # RE AFFICHER LA LISTE DES JOUEURS MAIS NE PAS AFFICHER CEUX DEJA SELECTIONES
                     # RE CHOISIR EN LIMITANT AU NB DE PERSONNES MANQUANTES
-            else:
+            if len(list_of_players) == 8:
                 print('We got the maximum players required! we good to go')
+                return list_of_players
 
     @classmethod
     def insert_new_tournament(cls):
-        cls.select_players()
-        t_name = cls.check_tournament_info("Name")
-        t_place = cls.check_tournament_info("Place")
+        #t_name = cls.check_tournament_info("Name")
+        #t_place = cls.check_tournament_info("Place")
         t_date = str(date.today())
-        t_rounds = cls.set_tournament_rounds()
+        #t_rounds = cls.set_tournament_rounds()
         t_turns = []
-        t_players_list = tournament_model.TournamentModel.select_players(8)
+        t_players_list = cls.select_players()
         t_time_control = cls.set_time_control()
-        t_description = str(input('Choose the description for your tournament: '))
+        #t_description = str(input('Choose the description for your tournament: '))
 
         # INSERTING INPUT DATA IN TOURNAMENT DB #
-        new_tournament = TournamentController(name=t_name, place=t_place, date=t_date, rounds=t_rounds, turns=t_turns,
-                                              playerslist=t_players_list, timecontrol=t_time_control,
-                                              description=t_description)
+        new_tournament = tournament_model.TournamentModel(name='t_name', place='t_place', date=t_date, rounds=4, turns=t_turns, playerslist=t_players_list, timecontrol=t_time_control, description='t_description')
 
         serialized_tournament = {
             'name': new_tournament.name,
@@ -217,8 +284,11 @@ class TournamentController(object):
             view.View.show_new_tournament_created(insert_query)
             start_tournament = input('Do you wanna start tournament now ? [Y/n]')
             if start_tournament.lower() == 'y':
-                # fonction de selection des joueurs
-                cls.select_players()
-                # selectione jusqu'a 8 joueurs
+                # DEBUT DU TOURNOI
+                list_of_players = new_tournament.playerslist
+                nb_rounds = new_tournament.rounds
+                cls.start_tournament(list_of_players, nb_rounds)
+            elif start_tournament.lower() == 'n':
+                main_controller.start()
         except ValueError:
             print(ValueError)

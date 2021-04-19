@@ -23,3 +23,10 @@ class View(object):
     def display_all_players(count, player):
         print("Player n°" + str(count) + ' : ' + player['firstname'] + ' ' + player['lastname'] + ", Rank : " + str(player['ladder']))
 
+    @staticmethod
+    def show_match_versus(player1, player2):
+        print(player1['firstname'] + ' ' + player1['lastname'] + ' Rank: ' + str(player1['ladder']) + ' VS ' + player2['firstname'] + ' ' + player2['lastname'] + ' Rank: ' + str(player2['ladder']))
+
+    @staticmethod
+    def unique_match_result(player1, player2):
+        print(player1['firstname'] + ' ' + player1['lastname'] + ' WON the match, +1pts')

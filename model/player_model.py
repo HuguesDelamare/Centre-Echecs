@@ -2,7 +2,18 @@ from tinydb import TinyDB, Query
 
 player_db = TinyDB('../database/chessCenterDatabase.json').table('playerTable')
 
+
 class PlayerModel(object):
+    def __init__(self, lastname=None, firstname=None, birthdate=None, gender=None, ladder=None, points=0):
+        self.lastname = str(lastname)
+        self.firstname = str(firstname)
+        self.birthdate = str(birthdate)
+        self.gender = str(gender)
+        self.ladder = ladder
+        self.points = float(points)
+
+    """def __str__(self):
+        return "New Player created : " + str(self.__dict__)"""
 
     @staticmethod
     def insert_new_player(serialized_player):
@@ -17,12 +28,13 @@ class PlayerModel(object):
         return result
 
     @staticmethod
-    def get_all_players_in_db(list_id):
+    def select_players_in_db(list_id):
         list_of_players = []
         global player_db
         for player_id in list_id:
-            player = player_db.get(doc_id=player_id)
-            list_of_players.append(player)
+            player_id = int(player_id)
+            result = player_db.get(doc_id=player_id)
+            list_of_players.append(result)
         return list_of_players
 
     @staticmethod

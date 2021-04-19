@@ -3,6 +3,18 @@ import random
 
 
 class TournamentModel(object):
+    def __init__(self, name=None, place=None, date=None, rounds=None, turns=None, playerslist=None, timecontrol=None, description=None):
+        self.name = str(name)
+        self.place = str(place)
+        self.date = str(date)
+        self.rounds = int(rounds)
+        self.turns = str(turns)
+        self.playerslist = list(playerslist)
+        self.timecontrol = str(timecontrol)
+        self.description = str(description)
+
+    """def __str__(self):
+        return "New tournament created: " + str(self.__dict__)"""
 
     @staticmethod
     def select_players(players_picked):
