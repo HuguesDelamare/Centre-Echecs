@@ -45,3 +45,15 @@ class TournamentModel(object):
         tournament_db.insert(serialized_tournament)
         return serialized_tournament
 
+    @staticmethod
+    def insert_new_round():
+        tournament_db = TinyDB('../database/chessCenterDatabase.json').table('tournamentTable')
+
+        tournament_db.all()
+
+        for i in tournament_db.all():
+            print(i)
+
+    @staticmethod
+    def insert_new_match():
+        print('match')
