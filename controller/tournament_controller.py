@@ -3,6 +3,7 @@ from model import player_model
 from controller import main_controller
 from controller import player_controller
 from datetime import date
+from time import strftime, localtime
 from view import view
 
 
@@ -165,8 +166,16 @@ class TournamentController(object):
 
     @classmethod
     def insert_new_round_db(cls, round):
-        tournament_model.TournamentModel.insert_new_round()
-        print(round)
+        tournament_name = 'alaska'
+        starting_datetime = strftime("%d-%m-%Y %H:%M", localtime())
+
+        serialized_round = {
+            'Round'+str(round): [],
+            'StartingDatetime': starting_datetime,
+            'FinishingDatetime': None
+        }
+
+        tournament_model.TournamentModel.insert_new_round(tournament_name, serialized_round)
 
 
     @classmethod
