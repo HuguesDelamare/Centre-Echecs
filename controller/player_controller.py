@@ -16,7 +16,7 @@ class PlayerController(object):
                 except ValueError:
                     pass
 
-    # FUNCTION TO PICK THE GENDER OF THE NEW PLAYER #
+    # FUNCTION TO PICK THE GENDER OF THE NEW PLAYER
     @classmethod
     def set_player_gender(cls):
         while True:
@@ -26,7 +26,18 @@ class PlayerController(object):
             else:
                 continue
 
-    # FUNCTION TO CHECK IF DATA INPUT ARE VALID #
+    # FUNCTION TO SET THE LADDER OF THE NEW PLAYER
+    @classmethod
+    def set_player_ladder(cls):
+        while True:
+            ladder_input = int(input('Player ladder: '))
+            if type(ladder_input) is int:
+                return ladder_input
+            else:
+                continue
+        return ladder_input
+
+    # FUNCTION TO CHECK IF DATA INPUT ARE VALID
     @classmethod
     def check_player_info(cls, input_text_value):
         while True:
@@ -60,11 +71,12 @@ class PlayerController(object):
         p_firstname = cls.check_player_info("Firstname")
         p_lastname = cls.check_player_info("Lastname")
         p_birthdate = cls.set_player_birthdate()
+        p_ladder = cls.set_player_ladder()
         p_gender = cls.set_player_gender()
 
         # INSERTING INPUT DATA IN PLAYER DB #
 
-        new_player = player_model.PlayerModel(lastname=p_lastname, firstname=p_firstname, birthdate=p_birthdate, gender=p_gender, ladder=1000, points=0)
+        new_player = player_model.PlayerModel(lastname=p_lastname, firstname=p_firstname, birthdate=p_birthdate, gender=p_gender, ladder=p_ladder, points=0)
 
         serialized_player = {
             'lastname': new_player.lastname,

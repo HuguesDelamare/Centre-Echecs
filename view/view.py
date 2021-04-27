@@ -25,8 +25,16 @@ class View(object):
 
     @staticmethod
     def show_match_versus(player1, player2):
-        print(player1['firstname'] + ' ' + player1['lastname'] + ' Rank: ' + str(player1['ladder']) + ' VS ' + player2['firstname'] + ' ' + player2['lastname'] + ' Rank: ' + str(player2['ladder']))
+        print(player1['firstname'] + ' ' + player1['lastname'] + ' VS ' + player2['firstname'] + ' ' + player2['lastname'])
 
     @staticmethod
-    def unique_match_result(player1, player2):
-        print(player1['firstname'] + ' ' + player1['lastname'] + ' WON the match, +1pts')
+    def display_unique_match_result(result, player):
+        if result == '1' or result == '2':
+            print(player['firstname'] + ' ' + player['lastname'] + ' WON the match, +1pts')
+        else:
+            print('Match is a tie, the two players get +0.5pts')
+
+    @staticmethod
+    def end_tournament_message():
+        print('Tournament is over !')
+

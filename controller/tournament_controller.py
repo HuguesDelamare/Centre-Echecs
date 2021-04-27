@@ -72,8 +72,8 @@ class TournamentController(object):
                 continue
 
     @staticmethod
-    def creating_pairs(players_list, rounds_count):
-
+    def creating_pairs(players_list, rounds_count, list=None):
+        list_of_previous_match = list
         if rounds_count == 1:
             # Getting all players in list and sorting them by their ladder ASC
             players_list.sort(key=lambda e: e['ladder'])
@@ -87,95 +87,112 @@ class TournamentController(object):
             pairs = zip(superior_players, inferior_players)
 
             return pairs
-        else:
-            players_list.sort(key=lambda x: x[2])
-            print(players_list)
+        # 3.Au prochain tour, triez tous les joueurs en fonction de leur nombre total de points. Si plusieurs joueurs ont le même nombre de points, triez-les en fonction de leur rang.
+        # 4.Associez le joueur 1 avec le joueur 2, le joueur 3 avec le joueur 4, et ainsi de suite. Si le joueur 1 a déjà joué contre le joueur 2, associez-le plutôt au joueur 3.
+        # 5.Répétez les étapes 3 et 4 jusqu'à ce que le tournoi soit terminé.
 
+        # Mettre en place un systeme de mise a jour des matchs
+        else:
+            new_pair = []
+            count_pair = 0
+            i = 0
+            y = 1
+
+            # Sorting players by their total points
+            players_list.sort(key=lambda x: x['points'])
+
+            while count_pair < 4:
+                match_tuple = (players_list[i], players_list[y])
+                # Checking if players fought each others before
+
+                # If the match between players already exist we look the next player
+                if match_tuple in list:
+                    y += 1
+                    continue
+
+                # If the match doesn't exist we push the pair in the array
+                else:
+                    new_pair.append(match_tuple)
+                    i += 2
+                    y += 2
+                    count_pair += 1
+                    continue
+
+            return new_pair
 
     @staticmethod
     def starting_match(pair):
-        player1 = pair[0]
-        player2 = pair[1]
-        view.View.show_match_versus(player1, player2)
-        result_match_input = input('Who won this match ?')
+        # View that show player1 Vs player2
+        view.View.show_match_versus(pair[0], pair[1])
+        result_match_input = input('Who is the winner of this match? : ')
 
         return result_match_input
 
     @staticmethod
-    def distributing_points(pair):
+    def distributing_points(winner, pair, playerlist):
+        player1 = pair[0]
+        player2 = pair[1]
+
+        if winner == '1':
+            for i in range(len(playerlist)):
+                if playerlist[i] == player1:
+                    playerlist[i]['points'] += 1
+                    player1_result = [player1['firstname'], player1['lastname'], player1['ladder'], player1['points']]
+                    player2_result = [player2['firstname'], player2['lastname'], player2['ladder'], player2['points']]
+                    match_tuple = (player1_result, player2_result)
+
+                    return [match_tuple, playerlist]
+
+        if winner == '2':
+            for i in range(len(playerlist)):
+                if playerlist[i] == player2:
+                    playerlist[i]['points'] += 1
+                    player1_result = [player1['firstname'], player1['lastname'], player1['ladder'], player1['points']]
+                    player2_result = [player2['firstname'], player2['lastname'], player2['ladder'], player2['points']]
+                    match_tuple = (player1_result, player2_result)
+
+                    return [match_tuple, playerlist]
 
     @classmethod
     def start_tournament(cls, players_list, nb_rounds):
-        rounds_count = 1
+        players_list = players_list
+        rounds_count = 0
         list_of_match = []
-        pair_list_of_match = []
-
         # Match[match1[([J1]vs[J2])([J1]vs[J2])([J1]vs[J2])], match2[([J1]vs[J2])([J1]vs[J2])([J1]vs[J2])]]
         while rounds_count < nb_rounds:
             list_of_current_round = []
-            print('ROUND ' + str(rounds_count))
+            print('ROUND ' + str(rounds_count+1))
             if rounds_count == 1:
                 pair_selector = cls.creating_pairs(players_list, rounds_count)
                 for pair in pair_selector:
+                    # Displaying players and admin has to pick a winner
                     result_match_input = cls.starting_match(pair)
-                    # If player 1 win the match
-                    if result_match_input == '1':
-                        player1['points'] = player1['points'] + 1
-                        player2['points'] = player2['points'] + 0
-
-                        player1_result = [player1['firstname'], player1['lastname'], player1['points']]
-                        player2_result = [player2['firstname'], player2['lastname'], player2['points']]
-                        pair_list_of_match.append(player1_result)
-                        pair_list_of_match.append(player2_result)
-                        match_result = (player1_result, player2_result)
-                        list_of_current_round.insert(0, match_result)
-
-                    # If player 2 win the match
-                    elif result_match_input == '2':
-                        print(player2['firstname'] + ' ' + player2['lastname'] + ' WON the match, +1pts')
-                        player1['points'] = player1['points'] + 0
-                        player2['points'] = player2['points'] + 1
-
-                        player1_result = [player1['firstname'], player1['lastname'], player1['points']]
-                        player2_result = [player2['firstname'], player2['lastname'], player2['points']]
-                        pair_list_of_match.append(player1_result)
-                        pair_list_of_match.append(player2_result)
-                        match_result = (player1_result, player2_result)
-                        list_of_current_round.insert(0, match_result)
-
-                    else:
-                        print('Match is even, the two players get +0.5pts')
-                        player1['points'] = player1['points'] + 0.5
-                        player2['points'] = player2['points'] + 0.5
-
-                        player1_result = [player1['firstname'], player1['lastname'], player1['points']]
-                        player2_result = [player2['firstname'], player2['lastname'], player2['points']]
-                        pair_list_of_match.append(player1_result)
-                        pair_list_of_match.append(player2_result)
-                        match_result = (player1_result, player2_result)
-                        list_of_current_round.insert(0, match_result)
+                    # Attributing points to players and displaying results
+                    match_result = cls.distributing_points(result_match_input, pair, players_list)
+                    # TO DO : push le tuple du match dans la bdd du round et tournoi
+                    list_of_current_round.insert(0, match_result[0])
+                    players_list = match_result[1]
                 list_of_match.append(list_of_current_round)
                 rounds_count += 1
             elif rounds_count != 1:
-                cls.creating_pairs(pair_list_of_match, rounds_count)
+                new_pair = cls.creating_pairs(players_list, rounds_count, list_of_match)
+                for pair in new_pair:
+                    result_match_input = cls.starting_match(pair)
+                    match_result = cls.distributing_points(result_match_input, pair, players_list)
+                    list_of_current_round.insert(0, match_result[0])
+                    players_list = match_result[1]
+                list_of_match.append(list_of_current_round)
                 rounds_count += 1
             else:
                 print('error')
 
     @classmethod
-    def attribute_points_match(cls, match_result):
-        if match_result == '1':
-            print('1')
-        elif match_result == '2':
-            print('2')
-        else:
-            print('0.5')
-
-    @classmethod
     def check_duplicate(cls, variable):
         for number in variable:
             if variable.count(number) > 1:
+
                 return True
+
         return False
 
     @staticmethod
@@ -195,10 +212,10 @@ class TournamentController(object):
             # checking if theres no duplicate in array
             check_duplicate = cls.check_duplicate(array)
             if check_duplicate:
-                print('There\s duplicate value in your selection, re-do it')
+                print('ERROR, there\'s duplicate players in your selection')
                 return False
             else:
-                print('There\'s no duplicate in the selection')
+                # print('There\'s no duplicate in the selection')
                 return True
         else:
             print('Only numbers allowed in the selection')
@@ -215,7 +232,7 @@ class TournamentController(object):
             players = player_model.PlayerModel.get_players_by_id(count)
             view.View.display_all_players(count, players)
 
-        # Selecting which player we want in input
+        # Selecting our players in input
         if count == players_db_size:
 
             # CONDITION POUR CHIFFRE > players_db_size ex: pas de 44 si db = 8
@@ -232,7 +249,7 @@ class TournamentController(object):
                 else:
                     continue
 
-            # get players by id and return them in list
+            # Get players by id and return them in list
             list_of_players = player_model.PlayerModel.select_players_in_db(list_of_ids)
             print(list_of_players)
 
