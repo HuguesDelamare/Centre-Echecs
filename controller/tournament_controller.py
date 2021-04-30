@@ -126,6 +126,11 @@ class TournamentController(object):
         return result_match_input
 
     @staticmethod
+    def check_if_tournament_exist(tournament_name):
+        print('hello')
+        tournament_model.TournamentModel.check_if_tournament_exist(tournament_name)
+
+    @staticmethod
     def distributing_points(winner, pair, playerlist):
         player1 = pair[0]
         player2 = pair[1]
@@ -166,50 +171,53 @@ class TournamentController(object):
 
     @classmethod
     def insert_new_round_db(cls, round):
-        tournament_name = 'alaska'
+        tournament_name = 't_name'
         starting_datetime = strftime("%d-%m-%Y %H:%M", localtime())
-
         serialized_round = {
-            'Round'+str(round): [],
+            'Round' + str(round): [],
             'StartingDatetime': starting_datetime,
             'FinishingDatetime': None
         }
-
         tournament_model.TournamentModel.insert_new_round(tournament_name, serialized_round)
 
-
     @classmethod
-    def insert_new_match_db(cls):
-        tournament_model.TournamentModel.insert_new_match()
-        print('match')
+    def insert_new_match_db(cls, match, round_number, match_number):
+        tournament_name = 't_name'
+        tournament_model.TournamentModel.insert_new_match(tournament_name, match, round_number)
 
     @classmethod
     def start_tournament(cls, players_list, nb_rounds):
         players_list = players_list
         rounds_count = 0
         list_of_match = []
-        # Match[match1[([J1]vs[J2])([J1]vs[J2])([J1]vs[J2])], match2[([J1]vs[J2])([J1]vs[J2])([J1]vs[J2])]]
+        # turns : [Round1: [(player1 vs player2), (player2 vs player3], debut, fin, Round2: [(player1 vs player2), (player2 vs player3], debut, fin]
         while rounds_count < nb_rounds:
             list_of_current_round = []
             print('ROUND ' + str(rounds_count+1))
             cls.insert_new_round_db(rounds_count+1)
             if rounds_count == 0:
                 pair_selector = cls.creating_pairs(players_list, rounds_count)
+                match_count = 0
                 for pair in pair_selector:
                     # Displaying players and admin has to pick a winner
                     result_match_input = cls.starting_match(pair)
+                    match_count += 1
                     # Attributing points to players and displaying results
                     match_result = cls.distributing_points(result_match_input, pair, players_list)
                     list_of_current_round.insert(0, match_result[0])
+                    cls.insert_new_match_db(match_result[0], rounds_count+1, match_count)
                     players_list = match_result[1]
                 list_of_match.append(list_of_current_round)
                 rounds_count += 1
             elif rounds_count >= 1:
                 new_pair = cls.creating_pairs(players_list, rounds_count, list_of_match)
+                match_count = 0
                 for pair in new_pair:
                     result_match_input = cls.starting_match(pair)
+                    match_count += 1
                     match_result = cls.distributing_points(result_match_input, pair, players_list)
                     list_of_current_round.insert(0, match_result[0])
+                    cls.insert_new_match_db(match_result[0], rounds_count+1, match_count)
                     players_list = match_result[1]
                 list_of_match.append(list_of_current_round)
                 rounds_count += 1
