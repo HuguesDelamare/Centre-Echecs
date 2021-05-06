@@ -1,6 +1,7 @@
 from view import view
 from model import player_model
 import datetime
+import string
 
 
 class PlayerController(object):
@@ -14,15 +15,27 @@ class PlayerController(object):
                     date = datetime.datetime.strptime(player_birthdate, format).date()
                     return date
                 except ValueError:
+                    print('Asking for ' + format + ' format, ' + player_birthdate + ' given.')
                     pass
+
+    @classmethod
+    def get_all_players_in_db(cls):
+        count = 0
+        players_db_size = player_model.PlayerModel.get_player_db_size()
+
+        # Display all players(names and ranks) from database
+        while count < players_db_size:
+            count += 1
+            players = player_model.PlayerModel.get_players_by_id(count)
+            view.View.display_all_players(count, players)
 
     # FUNCTION TO PICK THE GENDER OF THE NEW PLAYER
     @classmethod
     def set_player_gender(cls):
         while True:
             player_gender = input('Player gender: [M]ale or [F]emale ?: ')
-            if player_gender == "M" or player_gender == "F":
-                return player_gender
+            if player_gender.lower() == "m" or player_gender == "f":
+                return player_gender.capitalize()
             else:
                 continue
 
@@ -42,6 +55,7 @@ class PlayerController(object):
     def check_player_info(cls, input_text_value):
         while True:
             count = 0
+            invalidcharacters = set(string.punctuation)
             input_value = input('Player ' + input_text_value + ': ')
             # Checking if input value is a string (str)
             if type(input_value) is str:
@@ -53,18 +67,23 @@ class PlayerController(object):
                             count += 1
                         else:
                             pass
+                    if count >= 1:
+                        print('ERROR, no numbers allowed.')
+                        continue
+                    else:
+                        if any(char in invalidcharacters for char in input_value):
+                            print("ERROR, no special characters allowed.")
+                            continue
+                        else:
+                            pass
                 else:
-                    print('Error, must be longer.')
+                    print('ERROR, must be longer.')
                     continue
             else:
                 print('Error, must be string text.')
                 continue
             # print("Total digit present : ", count)
-            if count >= 1:
-                print('Error, no numbers allowed.')
-                continue
-            else:
-                return input_value
+            return input_value.capitalize()
 
     @classmethod
     def insert_new_player(cls):

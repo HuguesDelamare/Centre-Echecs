@@ -1,7 +1,5 @@
-from model import tournament_model
-from model import player_model
-from controller import main_controller
-from controller import player_controller
+from model import tournament_model, player_model
+from controller import main_controller, player_controller
 from datetime import date
 from time import strftime, localtime
 from view import view
@@ -170,8 +168,7 @@ class TournamentController(object):
             return [match_tuple, playerlist]
 
     @classmethod
-    def insert_new_round_db(cls, round):
-        tournament_name = 't_name'
+    def insert_new_round_db(cls, round, tournament_name):
         starting_datetime = strftime("%d-%m-%Y %H:%M", localtime())
         serialized_round = {
             'Round' + str(round): [],
@@ -181,12 +178,12 @@ class TournamentController(object):
         tournament_model.TournamentModel.insert_new_round(tournament_name, serialized_round)
 
     @classmethod
-    def insert_new_match_db(cls, match, round_number, match_number):
-        tournament_name = 't_name'
+    def insert_new_match_db(cls, match, round_number, match_number, tournament_name):
         tournament_model.TournamentModel.insert_new_match(tournament_name, match, round_number)
 
     @classmethod
-    def start_tournament(cls, players_list, nb_rounds):
+    def start_tournament(cls, players_list, nb_rounds, tournament_name):
+        print(tournament_name)
         players_list = players_list
         rounds_count = 0
         list_of_match = []
@@ -194,7 +191,7 @@ class TournamentController(object):
         while rounds_count < nb_rounds:
             list_of_current_round = []
             print('ROUND ' + str(rounds_count+1))
-            cls.insert_new_round_db(rounds_count+1)
+            cls.insert_new_round_db(rounds_count+1, tournament_name)
             if rounds_count == 0:
                 pair_selector = cls.creating_pairs(players_list, rounds_count)
                 match_count = 0
@@ -205,7 +202,7 @@ class TournamentController(object):
                     # Attributing points to players and displaying results
                     match_result = cls.distributing_points(result_match_input, pair, players_list)
                     list_of_current_round.insert(0, match_result[0])
-                    cls.insert_new_match_db(match_result[0], rounds_count+1, match_count)
+                    cls.insert_new_match_db(match_result[0], rounds_count+1, match_count, tournament_name)
                     players_list = match_result[1]
                 list_of_match.append(list_of_current_round)
                 rounds_count += 1
@@ -217,7 +214,7 @@ class TournamentController(object):
                     match_count += 1
                     match_result = cls.distributing_points(result_match_input, pair, players_list)
                     list_of_current_round.insert(0, match_result[0])
-                    cls.insert_new_match_db(match_result[0], rounds_count+1, match_count)
+                    cls.insert_new_match_db(match_result[0], rounds_count+1, match_count, tournament_name)
                     players_list = match_result[1]
                 list_of_match.append(list_of_current_round)
                 rounds_count += 1
@@ -229,7 +226,6 @@ class TournamentController(object):
         for number in variable:
             if variable.count(number) > 1:
                 return True
-
         return False
 
     @staticmethod
@@ -241,8 +237,18 @@ class TournamentController(object):
         result = string.isdigit()
         return result
 
+    @staticmethod
+    def id_player_exist(array, players_db_size):
+        bool = ""
+        for player_id in array:
+            if int(players_db_size) >= int(player_id) > 0:
+                bool = True
+            else:
+                bool = False
+        return bool
+
     @classmethod
-    def checking_validity_array(cls, array):
+    def checking_validity_array(cls, array, players_db_size):
         # checking if only numeric values in array
         is_number = cls.is_number(array)
         if is_number:
@@ -252,8 +258,12 @@ class TournamentController(object):
                 print('ERROR, there\'s duplicate players in your selection')
                 return False
             else:
-                # print('There\'s no duplicate in the selection')
-                return True
+                check_id_player_exist = cls.id_player_exist(array, players_db_size)
+                if check_id_player_exist:
+                    return True
+                else:
+                    print('ERROR, player\'s ID doesn\'t exist')
+                    return False
         else:
             print('Only numbers allowed in the selection')
             return False
@@ -271,8 +281,6 @@ class TournamentController(object):
 
         # Selecting our players in input
         if count == players_db_size:
-
-            # CONDITION POUR CHIFFRE > players_db_size ex: pas de 44 si db = 8
             count = 0
             while True:
                 list_of_ids = []
@@ -280,7 +288,7 @@ class TournamentController(object):
                 # we push the Ids selected before in an array for query by id after
                 for id_player in selected_players_input.split(","):
                     list_of_ids.append(id_player)
-                result = cls.checking_validity_array(list_of_ids)
+                result = cls.checking_validity_array(list_of_ids, players_db_size)
                 if result:
                     break
                 else:
@@ -308,17 +316,17 @@ class TournamentController(object):
 
     @classmethod
     def insert_new_tournament(cls):
-        #t_name = cls.check_tournament_info("Name")
-        #t_place = cls.check_tournament_info("Place")
+        t_name = cls.check_tournament_info("Name")
+        t_place = cls.check_tournament_info("Place")
         t_date = str(date.today())
-        #t_rounds = cls.set_tournament_rounds()
+        # t_rounds = cls.set_tournament_rounds()
         t_turns = []
         t_players_list = cls.select_players()
         t_time_control = cls.set_time_control()
         #t_description = str(input('Choose the description for your tournament: '))
 
         # INSERTING INPUT DATA IN TOURNAMENT DB #
-        new_tournament = tournament_model.TournamentModel(name='t_name', place='t_place', date=t_date, rounds=4, turns=t_turns, playerslist=t_players_list, timecontrol=t_time_control, description='t_description')
+        new_tournament = tournament_model.TournamentModel(name=t_name, place=t_place, date=t_date, rounds=4, turns=t_turns, playerslist=t_players_list, timecontrol=t_time_control, description='t_description')
 
         serialized_tournament = {
             'name': new_tournament.name,
@@ -336,13 +344,17 @@ class TournamentController(object):
 
         try:
             view.View.show_new_tournament_created(insert_query)
-            start_tournament = input('Do you wanna start tournament now ? [Y/n]')
-            if start_tournament.lower() == 'y':
-                # DEBUT DU TOURNOI
-                list_of_players = new_tournament.playerslist
-                nb_rounds = new_tournament.rounds
-                cls.start_tournament(list_of_players, nb_rounds)
-            elif start_tournament.lower() == 'n':
-                main_controller.start()
+            while True:
+                start_tournament = input('Do you wanna start tournament now ? [Y/n]')
+                if start_tournament.lower() == 'y':
+                    list_of_players = new_tournament.playerslist
+                    nb_rounds = new_tournament.rounds
+                    print(new_tournament.name)
+                    cls.start_tournament(list_of_players, nb_rounds, new_tournament.name)
+                elif start_tournament.lower() == 'n':
+                    main_controller.start()
+                else:
+                    print('ERROR : Asking if [Y]es or [N]o, ' + start_tournament + ' given.')
+                    continue
         except ValueError:
             print(ValueError)

@@ -21,7 +21,7 @@ class View(object):
 
     @staticmethod
     def display_all_players(count, player):
-        print("Player n°" + str(count) + ' : ' + player['firstname'] + ' ' + player['lastname'] + ", Rank : " + str(player['ladder']))
+        print(str(count) + ': ' + player['firstname'] + ' ' + player['lastname'] + " |" + " Rank: " + str(player['ladder']))
 
     @staticmethod
     def show_match_versus(player1, player2):
@@ -38,3 +38,8 @@ class View(object):
     def end_tournament_message():
         print('Tournament is over !')
 
+    @staticmethod
+    def show_ladder_menu():
+        print("1.Check players ladder")
+        print("2.Check tournaments ladder")
+        print("3.Back")

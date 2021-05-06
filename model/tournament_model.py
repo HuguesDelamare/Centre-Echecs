@@ -2,7 +2,7 @@ from tinydb import TinyDB, Query
 from tinydb.operations import add
 from tinydb import where
 import random
-
+import json
 
 class TournamentModel(object):
     def __init__(self, name=None, place=None, date=None, rounds=None, turns=None, playerslist=None, timecontrol=None, description=None):
@@ -49,6 +49,7 @@ class TournamentModel(object):
 
     @staticmethod
     def insert_new_round(tournament_name, serialized_round):
+        print(serialized_round)
         tournament_db = TinyDB('../database/chessCenterDatabase.json').table('tournamentTable')
         search_db = tournament_db.search(Query().name == str(tournament_name))
         if len(search_db) != 0:
@@ -61,24 +62,35 @@ class TournamentModel(object):
     def insert_new_match(tournament_name, match, round_number):
         # Database and table we're working on
         tournament_db = TinyDB('../database/chessCenterDatabase.json').table('tournamentTable')
+
         # Get the tournament data matching the name
         get_tournament = tournament_db.search(Query().name == str(tournament_name))
         # If the tournament exist
         if len(get_tournament) != 0:
-            for tournament in get_tournament:
-                print(tournament)
-                for key in tournament:
-                    if key == 'turns':
-                        for x in tournament[key]:
-                            key2 = x
-                            value = tournament[key][key2]
-                            if type(value) is list:
-                                print('key : ' + key)
-                                print('value : ' + key2)
-                                # Updating the database by adding the new value
-                                result = tournament_db.update(add(value, match), Query().name == str(tournament_name))
-                                print(get_tournament)
-                                return result
+            print(type(get_tournament))
+
+            json_parsed_tournament = json.dumps(get_tournament)
+            print(type(json_parsed_tournament))
+
+            json_to_dict = json.loads(json_parsed_tournament)
+            print(json_to_dict)
+            print(type(json_to_dict))
+
+            tournament_round = json_to_dict[0]['turns']['Round'+str(round_number)]
+
+
+            tournament_round.append(match)
+
+
+            print(json.dumps(json_to_dict))
+            print(type(json_to_dict))
+
+            try:
+                tournament_db.remove(Query().name == str(tournament_name))
+                result = tournament_db.insert(json_to_dict)
+                return result
+            except Exception as e:
+                print(e)
         else:
             print('ERROR, no tournament found')
 
