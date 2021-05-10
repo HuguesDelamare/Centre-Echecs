@@ -1,5 +1,5 @@
-from view import view
-from model import player_model
+import view
+import model
 import datetime
 import string
 
@@ -21,12 +21,12 @@ class PlayerController(object):
     @classmethod
     def get_all_players_in_db(cls):
         count = 0
-        players_db_size = player_model.PlayerModel.get_player_db_size()
+        players_db_size = model.playermodel.get_player_db_size()
 
         # Display all players(names and ranks) from database
         while count < players_db_size:
             count += 1
-            players = player_model.PlayerModel.get_players_by_id(count)
+            players = model.playermodel.get_players_by_id(count)
             view.View.display_all_players(count, players)
 
     # FUNCTION TO PICK THE GENDER OF THE NEW PLAYER
@@ -95,7 +95,7 @@ class PlayerController(object):
 
         # INSERTING INPUT DATA IN PLAYER DB #
 
-        new_player = player_model.PlayerModel(lastname=p_lastname, firstname=p_firstname, birthdate=p_birthdate, gender=p_gender, ladder=p_ladder, points=0)
+        new_player = model.playermodel(lastname=p_lastname, firstname=p_firstname, birthdate=p_birthdate, gender=p_gender, ladder=p_ladder, points=0)
 
         serialized_player = {
             'lastname': new_player.lastname,
@@ -106,7 +106,7 @@ class PlayerController(object):
             'points': new_player.points
         }
 
-        result = player_model.PlayerModel.insert_new_player(serialized_player)
+        result = model.playermodel.insert_new_player(serialized_player)
         view.View.show_new_player_created(result)
 
         return result

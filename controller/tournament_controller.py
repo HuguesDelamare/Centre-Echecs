@@ -1,6 +1,7 @@
-from model import tournament_model, player_model
-from controller import main_controller, player_controller
 from datetime import date
+import view
+import model
+import main
 from time import strftime, localtime
 from view import view
 
@@ -124,11 +125,6 @@ class TournamentController(object):
         return result_match_input
 
     @staticmethod
-    def check_if_tournament_exist(tournament_name):
-        print('hello')
-        tournament_model.TournamentModel.check_if_tournament_exist(tournament_name)
-
-    @staticmethod
     def distributing_points(winner, pair, playerlist):
         player1 = pair[0]
         player2 = pair[1]
@@ -175,11 +171,11 @@ class TournamentController(object):
             'StartingDatetime': starting_datetime,
             'FinishingDatetime': None
         }
-        tournament_model.TournamentModel.insert_new_round(tournament_name, serialized_round)
+        model.tournamentmodel.insert_new_round(tournament_name, serialized_round)
 
     @classmethod
     def insert_new_match_db(cls, match, round_number, match_number, tournament_name):
-        tournament_model.TournamentModel.insert_new_match(tournament_name, match, round_number)
+        model.tournamentmodel.insert_new_match(tournament_name, match, round_number)
 
     @classmethod
     def start_tournament(cls, players_list, nb_rounds, tournament_name):
@@ -271,12 +267,12 @@ class TournamentController(object):
     @classmethod
     def select_players(cls):
         count = 0
-        players_db_size = player_model.PlayerModel.get_player_db_size()
+        players_db_size = model.playermodel.get_player_db_size()
 
         # Display all players(names and ranks) from database
         while count < players_db_size:
             count += 1
-            players = player_model.PlayerModel.get_players_by_id(count)
+            players = model.playermodel.get_players_by_id(count)
             view.View.display_all_players(count, players)
 
         # Selecting our players in input
@@ -295,7 +291,7 @@ class TournamentController(object):
                     continue
 
             # Get players by id and return them in list
-            list_of_players = player_model.PlayerModel.select_players_in_db(list_of_ids)
+            list_of_players = model.playermodel.select_players_in_db(list_of_ids)
             print(list_of_players)
 
             while len(list_of_players) < 8:
@@ -303,7 +299,7 @@ class TournamentController(object):
                 print('We\'re missing ' + str(int(8) - int(len(list_of_players))) + ' players')
                 adding_players_input = input('Do you wanna add more players [M]anually or from the [L]ist ?')
                 if adding_players_input.lower() == 'm':
-                    added_player = player_controller.PlayerController.insert_new_player()
+                    added_player = model.playermodel.insert_new_player()
                     list_of_players.append(added_player)
                     print('We\'re missing ' + str(int(8) - int(len(list_of_players))) + ' players')
                 elif adding_players_input.lower() == 'l':
@@ -326,7 +322,7 @@ class TournamentController(object):
         #t_description = str(input('Choose the description for your tournament: '))
 
         # INSERTING INPUT DATA IN TOURNAMENT DB #
-        new_tournament = tournament_model.TournamentModel(name=t_name, place=t_place, date=t_date, rounds=4, turns=t_turns, playerslist=t_players_list, timecontrol=t_time_control, description='t_description')
+        new_tournament = model.tournamentmodel(name=t_name, place=t_place, date=t_date, rounds=4, turns=t_turns, playerslist=t_players_list, timecontrol=t_time_control, description='t_description')
 
         serialized_tournament = {
             'name': new_tournament.name,
@@ -340,7 +336,7 @@ class TournamentController(object):
         }
 
         # INSERTING DATA IN TOURNAMENTS TABLE #
-        insert_query = tournament_model.TournamentModel.insert_new_tournament(serialized_tournament)
+        insert_query = model.tournamentmodel.insert_new_tournament(serialized_tournament)
 
         try:
             view.View.show_new_tournament_created(insert_query)
@@ -352,7 +348,7 @@ class TournamentController(object):
                     print(new_tournament.name)
                     cls.start_tournament(list_of_players, nb_rounds, new_tournament.name)
                 elif start_tournament.lower() == 'n':
-                    main_controller.start()
+                    main.start()
                 else:
                     print('ERROR : Asking if [Y]es or [N]o, ' + start_tournament + ' given.')
                     continue

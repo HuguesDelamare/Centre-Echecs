@@ -1,6 +1,6 @@
 from tinydb import TinyDB, Query
 
-player_db = TinyDB('../database/chessCenterDatabase.json').table('playerTable')
+player_db = TinyDB('./database/chessCenterDatabase.json').table('playerTable')
 
 
 class PlayerModel(object):
@@ -17,20 +17,17 @@ class PlayerModel(object):
 
     @staticmethod
     def insert_new_player(serialized_player):
-        global player_db
         player_db.insert(serialized_player)
         return serialized_player
 
     @staticmethod
     def get_players_by_id(player_id):
-        global player_db
         result = player_db.get(doc_id=player_id)
         return result
 
     @staticmethod
     def select_players_in_db(list_id):
         list_of_players = []
-        global player_db
         for player_id in list_id:
             player_id = int(player_id)
             result = player_db.get(doc_id=player_id)
