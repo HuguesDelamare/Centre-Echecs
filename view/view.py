@@ -4,7 +4,7 @@ class View(object):
     def show_menu():
         print("1.Create player")
         print("2.Create tournament")
-        print("3.Check ladder")
+        print("3.Check reports")
         print("4.Exit")
 
     @staticmethod
@@ -29,6 +29,7 @@ class View(object):
 
     @staticmethod
     def display_unique_match_result(result, player):
+        # Enlever les conditions , mettre au niveau du controller
         if result == '1' or result == '2':
             print(player['firstname'] + ' ' + player['lastname'] + ' WON the match, +1pts')
         else:
@@ -40,6 +41,6 @@ class View(object):
 
     @staticmethod
     def show_ladder_menu():
-        print("1.Check players ladder")
-        print("2.Check tournaments ladder")
+        print("1. Players ladder")
+        print("2. Tournaments ladder")
         print("3.Back")

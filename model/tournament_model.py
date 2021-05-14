@@ -12,13 +12,11 @@ class TournamentModel(object):
         self.place = str(place)
         self.date = str(date)
         self.rounds = int(rounds)
-        self.turns = str(turns)
+        self.turns = list(turns)
         self.playerslist = list(playerslist)
         self.timecontrol = str(timecontrol)
         self.description = str(description)
-
-    """def __str__(self):
-        return "New tournament created: " + str(self.__dict__)"""
+        self.live = bool(True)
 
     @staticmethod
     def select_players(players_picked):
@@ -44,46 +42,62 @@ class TournamentModel(object):
 
     @staticmethod
     def insert_new_tournament(serialized_tournament):
-
         tournament_db.insert(serialized_tournament)
         return serialized_tournament
 
-    @staticmethod
+    """@staticmethod
     def insert_new_round(tournament_name, serialized_round):
         print(serialized_round)
-        search_db = tournament_db.search(Query().name == str(tournament_name))
-        if len(search_db) != 0:
-            result = tournament_db.update({'turns': serialized_round}), Query().name == str(tournament_name)
+        get_tournament = tournament_db.search(Query().name == str(tournament_name))
+        if len(get_tournament) != 0:
+            print(get_tournament)
+            tournament_round = get_tournament[0]
+            print(tournament_round)
+            tournament_round['turns'].append(serialized_round)
+            print(tournament_round)
+            try:
+                print('insert')
+                # tournament_db.remove(Query().name == str(tournament_name))
+                # result = tournament_db.insert(tournament_round)
+                result = tournament_db.update({'turns': tournament_round}), Query().name == str(tournament_name)
+                return result
+
+            except Exception as e:
+                print(e)
+        else:
+            print('ERROR, no tournament found')"""
+
+    @staticmethod
+    def insert_new_round(tournament_name, serialized_round):
+        # print(serialized_round)
+        get_tournament = tournament_db.search(Query().name == str(tournament_name))
+        if len(get_tournament) != 0:
+            tournament = get_tournament[0]
+            print(tournament)
+            tournament_turns = tournament['turns']
+            print(tournament_turns)
+            tournament_turns.append(serialized_round)
+            print(tournament_turns)
+            tournament['turns'] = tournament_turns
+            print(tournament)
+            tournament_db.remove(Query().name == str(tournament_name))
+            result = tournament_db.insert(tournament)
             return result
         else:
             print('ERROR, no tournament found')
 
     @staticmethod
-    def insert_new_match(tournament_name, match, round_number):
+    def insert_new_match(tournament_name, match, round_number, match_number):
         # Get the tournament data matching the name
         get_tournament = tournament_db.search(Query().name == str(tournament_name))
         # If the tournament exist
         if len(get_tournament) != 0:
-            print(type(get_tournament))
-
-            json_parsed_tournament = json.dumps(get_tournament)
-            print(type(json_parsed_tournament))
-
-            json_to_dict = json.loads(json_parsed_tournament)
-            print(json_to_dict)
-            print(type(json_to_dict))
-
-            tournament_round = json_to_dict[0]['turns']['Round'+str(round_number)]
+            tournament = get_tournament[0]
+            tournament_round = tournament['turns'][0]['Round'+str(round_number)]
             tournament_round.append(match)
-
-            print(json.dumps(json_to_dict))
-            print(type(json_to_dict))
-
-            try:
-                tournament_db.remove(Query().name == str(tournament_name))
-                result = tournament_db.insert(json_to_dict)
-                return result
-            except Exception as e:
-                print(e)
+            tournament['turns'][0]['Round'+str(round_number)] = tournament_round
+            tournament_db.remove(Query().name == str(tournament_name))
+            result = tournament_db.insert(tournament)
+            return result
         else:
             print('ERROR, no tournament found')

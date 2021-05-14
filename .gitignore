@@ -15,3 +15,4 @@ model/__pycache__/player_model.cpython-39.pyc
 database/chessCenterDatabase.json
 database/chessCenterDatabase.json
 *.json
+*.json

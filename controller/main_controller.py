@@ -1,5 +1,5 @@
-from view import view
-from controller import tournament_controller, player_controller
+import controller
+import view
 
 
 def start():
@@ -8,20 +8,23 @@ def start():
         try:
             answer = int(input('What do you wanna do ? : '))
             if answer == 1:
-                player_controller.PlayerController.insert_new_player()
+                controller.playercontroller.insert_new_player()
             elif answer == 2:
-                tournament_controller.TournamentController.insert_new_tournament()
+                tournament_is_live = controller.tournamentcontroller.check_tournament_live()
+                if tournament_is_live:
+                    print('A tournament is already live, Do you wanna continue to this one ?')
+                else:
+                    controller.tournamentcontroller.insert_new_tournament()
             elif answer == 3:
                 view.View.show_ladder_menu()
                 while True:
                     answer = int(input('What do you wanna do ? : '))
                     if answer == 1:
-                        print('checking player ladder')
-                        player_controller.PlayerController.get_all_players_in_db()
+                        controller.playercontroller.get_all_players_in_db()
                     elif answer == 2:
                         print('checking tournament ladder')
                     elif answer == 3:
-                        print('return')
+                        start()
                     else:
                         print('ERROR, wrong value given.')
             elif answer == 4:
@@ -32,6 +35,3 @@ def start():
         except ValueError:
             print('ERROR, wrong value given.')
             continue
-
-if __name__ == "__main__":
-    start()
