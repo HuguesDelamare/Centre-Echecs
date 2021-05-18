@@ -2,10 +2,10 @@ class View(object):
 
     @staticmethod
     def show_menu():
-        print("1.Create player")
-        print("2.Create tournament")
-        print("3.Check reports")
-        print("4.Exit")
+        print("1. Create player")
+        print("2. Create tournament")
+        print("3. Check reports")
+        print("4. Exit")
 
     @staticmethod
     def show_new_player_created(player):
@@ -28,12 +28,8 @@ class View(object):
         print(player1['firstname'] + ' ' + player1['lastname'] + ' VS ' + player2['firstname'] + ' ' + player2['lastname'])
 
     @staticmethod
-    def display_unique_match_result(result, player):
-        # Enlever les conditions , mettre au niveau du controller
-        if result == '1' or result == '2':
-            print(player['firstname'] + ' ' + player['lastname'] + ' WON the match, +1pts')
-        else:
-            print('Match is a tie, the two players get +0.5pts')
+    def display_unique_match_result(player):
+        print(player['firstname'] + ' ' + player['lastname'] + ' WON the match, +1pts')
 
     @staticmethod
     def end_tournament_message():
@@ -43,4 +39,10 @@ class View(object):
     def show_ladder_menu():
         print("1. Players ladder")
         print("2. Tournaments ladder")
-        print("3.Back")
+        print("3. Back to menu")
+
+    @staticmethod
+    def ongoing_tournament_menu():
+        print('A tournament is already ongoing, need to be done before making a new one.')
+        print("1. Continue the ongoing tournament")
+        print("2. Back to menu")

@@ -1,7 +1,7 @@
 from datetime import date
 import view
 import model
-import main
+import controller
 from time import strftime, localtime
 from view import view
 
@@ -133,17 +133,25 @@ class TournamentController(object):
     @staticmethod
     def check_tournament_live():
         # Query to check if a tournament is already live
-        print('live')
+        check_ongoing_tournament = model.tournamentmodel.check_ongoing_tournament()
+        return check_ongoing_tournament
+
 
     # Function when a match is played
     @staticmethod
     def starting_match(pair):
-
         # Displaying the match between two players
         view.View.show_match_versus(pair[0], pair[1])
         result_match_input = input('Who is the winner of this match? : ')
 
         return result_match_input
+
+    # Function to get the current local datetime
+    @staticmethod
+    def get_local_datetime():
+        # Getting the local datetime for the tournament
+        local_datetime = strftime("%d-%m-%Y %H:%M", localtime())
+        return local_datetime
 
     # Function to distribute points to players after a match is done
     @staticmethod
@@ -194,14 +202,10 @@ class TournamentController(object):
     # Function to insert a fresh round to the DB
     @classmethod
     def insert_new_round_db(cls, round, tournament_name):
-
-        # Getting the date/hour of the actual day round is inserted
-        starting_datetime = strftime("%d-%m-%Y %H:%M", localtime())
-
         # Jsonify the actual round
         serialized_round = {
             'Round' + str(round): [],
-            'StartingDatetime': starting_datetime,
+            'StartingDatetime': cls.get_local_datetime(),
             'FinishingDatetime': None
         }
 
@@ -210,9 +214,15 @@ class TournamentController(object):
 
     # Function to insert a new match in DB
     @classmethod
-    def insert_new_match_db(cls, match, round_number, match_number, tournament_name):
+    def insert_new_match_db(cls, match, round_number, tournament_name):
         # Pushing data to model for insert
-        model.tournamentmodel.insert_new_match(tournament_name, match, round_number, match_number)
+        model.tournamentmodel.insert_new_match(tournament_name, match, round_number)
+
+    #
+    @classmethod
+    def end_date_round(cls, tournament_name, round_number, end_date):
+        #
+        model.tournamentmodel.end_date_round(tournament_name, round_number, end_date)
 
     @classmethod
     def start_tournament(cls, players_list, nb_rounds, tournament_name):
@@ -228,9 +238,7 @@ class TournamentController(object):
             if rounds_count == 0:
                 pair_selector = cls.creating_pairs(players_list, rounds_count)
                 match_count = 0
-
                 for pair in pair_selector:
-
                     # Displaying players and admin has to pick a winner
                     result_match_input = cls.starting_match(pair)
                     match_count += 1
@@ -238,10 +246,11 @@ class TournamentController(object):
                     # Attributing points to players and displaying results
                     match_result = cls.distributing_points(result_match_input, pair, players_list)
                     list_of_current_round.insert(0, match_result[0])
-                    cls.insert_new_match_db(match_result[0], rounds_count+1, match_count, tournament_name)
+                    cls.insert_new_match_db(match_result[0], rounds_count+1, tournament_name)
                     players_list = match_result[1]
 
                 list_of_match.append(list_of_current_round)
+                cls.end_date_round(tournament_name, rounds_count+1, cls.get_local_datetime())
                 rounds_count += 1
             elif rounds_count >= 1:
                 new_pair = cls.creating_pairs(players_list, rounds_count, list_of_match)
@@ -251,12 +260,19 @@ class TournamentController(object):
                     match_count += 1
                     match_result = cls.distributing_points(result_match_input, pair, players_list)
                     list_of_current_round.insert(0, match_result[0])
-                    cls.insert_new_match_db(match_result[0], rounds_count+1, match_count, tournament_name)
+                    cls.insert_new_match_db(match_result[0], rounds_count+1, tournament_name)
                     players_list = match_result[1]
                 list_of_match.append(list_of_current_round)
+                cls.end_date_round(tournament_name, rounds_count + 1, cls.get_local_datetime())
                 rounds_count += 1
             else:
                 print('error')
+
+    #
+    @classmethod
+    def end_tournament(cls, tournament_name):
+        tournament_end = model.tournamentmodel.end_tournament(tournament_name)
+        return tournament_end
 
     # Function to check if theres a duplicate in our input
     @classmethod
@@ -382,12 +398,12 @@ class TournamentController(object):
         t_place = cls.check_tournament_info("Place")
         t_date = str(date.today())
         # t_rounds = cls.set_tournament_rounds()
-        t_turns = []
         t_players_list = cls.select_players()
         t_time_control = cls.set_time_control()
-        #t_description = str(input('Choose the description for your tournament: '))
+        # t_description = str(input('Choose the description for your tournament: '))
 
-        new_tournament = model.tournamentmodel(name=t_name, place=t_place, date=t_date, rounds=4, turns=t_turns, playerslist=t_players_list, timecontrol=t_time_control, description='t_description')
+        cls.l = []
+        new_tournament = model.tournamentmodel(name=t_name, place=t_place, date=t_date, rounds=4, turns=cls.l, playerslist=t_players_list, timecontrol=t_time_control, description='t_description', ongoing=True)
 
         serialized_tournament = {
             "name": new_tournament.name,
@@ -397,7 +413,8 @@ class TournamentController(object):
             "turns": new_tournament.turns,
             "playerList": new_tournament.playerslist,
             "timeControl": new_tournament.timecontrol,
-            "description": new_tournament.description
+            "description": new_tournament.description,
+            "ongoing": new_tournament.ongoing
         }
 
         # INSERTING DATA IN TOURNAMENTS TABLE #
@@ -412,8 +429,14 @@ class TournamentController(object):
                     nb_rounds = new_tournament.rounds
                     print(new_tournament.name)
                     cls.start_tournament(list_of_players, nb_rounds, new_tournament.name)
+                    end_tournament = cls.end_tournament(new_tournament.name)
+                    if end_tournament is False:
+                        print('The tournament is over.')
+                        break
+                    else:
+                        continue
                 elif start_tournament == 'n':
-                    main.start()
+                    controller.maincontroller()
                 else:
                     print('ERROR : Asking if [Y]es or [N]o, ' + start_tournament + ' given.')
                     continue
